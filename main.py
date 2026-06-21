@@ -96,7 +96,7 @@ def run_tracker():
     updates = tracker.update_trade_statuses(current_prices)
     
     for update in updates:
-        logger.info(f"Update for {update["coin"]}: {update["new_status"]}")
+        logger.info(f"Update for {update['coin']}: {update['new_status']}")
         msg = bot.format_update_message(update)
         bot.send_message(msg)
 
