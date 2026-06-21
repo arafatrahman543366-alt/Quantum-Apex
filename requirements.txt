@@ -1,0 +1,11 @@
+ccxt
+sqlalchemy
+pyyaml
+python-dotenv
+pandas
+numpy
+python-telegram-bot
+pillow
+matplotlib
+requests
+pytest
