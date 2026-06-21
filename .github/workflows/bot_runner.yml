@@ -1,0 +1,48 @@
+name: Crypto Signal Bot Runner
+
+on:
+  schedule:
+    - cron: '*/15 * * * *' # Every 15 minutes for scanning
+    - cron: '*/5 * * * *'  # Every 5 minutes for tracking
+  workflow_dispatch:
+
+jobs:
+  scan_and_track:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Market Scanner
+        if: github.event.schedule == '*/15 * * * *' || github.event_name == 'workflow_dispatch'
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          DATABASE_URL: "sqlite:///crypto_signals.db"
+        run: python main.py scan
+
+      - name: Run Trade Tracker
+        if: github.event.schedule == '*/5 * * * *' || github.event_name == 'workflow_dispatch'
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          DATABASE_URL: "sqlite:///crypto_signals.db"
+        run: python main.py track
+
+      - name: Commit and push database changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add crypto_signals.db bot.log
+          git commit -m "Update database and logs [skip ci]" || echo "No changes to commit"
+          git push
