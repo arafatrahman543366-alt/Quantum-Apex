@@ -1,0 +1,39 @@
+name: Quantum Apex Ultra Quant Engine
+
+on:
+  schedule:
+    - cron: '*/15 * * * *' # Run scanner every 15 minutes
+    - cron: '*/5 * * * *'  # Run tracker every 5 minutes
+  workflow_dispatch: # Allow manual run
+
+jobs:
+  run_bot:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Quantum Apex Scanner
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          DATABASE_URL: "sqlite:///crypto_signals.db"
+        run: python main.py scan
+
+      - name: Run Quantum Apex Tracker
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          DATABASE_URL: "sqlite:///crypto_signals.db"
+        run: python main.py track
+        
